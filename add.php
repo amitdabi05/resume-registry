@@ -21,12 +21,25 @@ session_start();
     $password = "root";
     $dbname = "assign_db";
 	try{
-		
-		if(isset($_POST['Add']))
-		{		
+				
 			 $pdo = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
              $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+              if(isset($_POST['first_name']) && isset($_POST['last_name']) && isset($_POST['email']) && isset($_POST['headline']) && isset($_POST['summary']))
+			  {
+				if(strlen($_POST['first_name'])<1 || strlen($_POST['last_name'])<1 || strlen($_POST['email'])<1 ||strlen($_POST['headline'])<1 ||strlen($_POST['summary'])<1)
+				{
+					$_SESSION['error']="All values are required";
+					header("Location:add.php");
+					return;
+				}	
+                if(strpos($_POST['email'],'@') === false)	
+				{
+					$_SESSION['error']="Email address must contian @";
+					header("Location:add.php");
+					return;
+				}					
+			  
+				  
              $stmt = $pdo->prepare('insert into profile(user_id,first_name,last_name,email,headline,summary) values(:u,:f,:l,:e,:h,:s)');
 
              $stmt->execute(array(':u'=>$_SESSION['user_id'], 
@@ -36,7 +49,9 @@ session_start();
 			 ':h'=>$_POST['headline'],
 			 ':s'=>$_POST['summary'],			
 			 ));
+			 $_SESSION['success']="Profile added";
 			 header("Location:index.php"); 
+			 return;
      	}
 	}
 	 catch(PDOException $e){
@@ -44,9 +59,15 @@ session_start();
     }
     $pdo = null;
 ?>
-<h1>Adding Profile for UMSI</h1>
-<span style="color:red" id="add1"></span><br>
-<form action="add.php" method="post">
+<h1>Adding Profile for <?php echo $_SESSION['name']?></h1>
+<?php
+    if(isset($_SESSION['error'])) 
+    {
+	echo "<p style='color:red'>".$_SESSION['error']."</p>";
+	unset($_SESSION['error']);
+   }
+   ?>
+<form  method="post">
 <label>First Name:</label>
 <input type="text" name="first_name" size="50" id="fn1"><br>
 <Label>Last Name:</label>
@@ -57,39 +78,9 @@ session_start();
 <input type="text" name="headline" size="60" id="hl1"><br>
 <label>Summary:</label><br>
 <textarea rows="10" cols="100" name="summary" id="sum1"></textarea><br><br>
-<input type="submit" onclick="return profile_data_validate();" name="Add" value="Add">
+<input type="submit" name="Add" value="Add">
 <input type="submit" name="Cancel" value="cancel">
 </form>
-<script type="text/javascript">
-function profile_data_validate()
-{
-	try{
-	fn=document.getElementById('fn1').value;
-	ln=document.getElementById('ln1').value;
-    em=document.getElementById('email1').value;
-	hl=document.getElementById('hl1').value;
-	sum=document.getElementById('sum1').value;
-    var atposition =em.indexOf('@');
-      if(fn==null || fn=="" || ln==null || ln=="" ||em==null || em=="" || hl==null ||hl=="" || sum==null ||sum=="")
-		{
-		document.getElementById('add1').innerHTML = 'All values are required.';
-			return false;
-		}
-       
-       else if(atposition== -1)
-	   {
-        document.getElementById('add1').innerHTML = 'emial address must contain @.';	
-        return false;		
-	   }		   
-	   return true;
-			}
-	catch(e)
-	{
-		return false;
-	}
-	return false;
-}
-</script>
 </div>
 </body>
 </html>

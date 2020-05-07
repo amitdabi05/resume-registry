@@ -16,8 +16,18 @@
 <h1>Resume Registry</h1>
  <?php
    session_start();
+   if(isset ($_SESSION['error'])) 
+{
+	echo "<p style='color:red'>".$_SESSION['error']."</p>";
+	unset($_SESSION['error']);
+}
+   if(isset ($_SESSION['success'])) 
+{
+	echo "<p style='color:green'>".$_SESSION['success']."</p>";
+	unset($_SESSION['success']);
+}
     if(isset($_SESSION['name']))
-	{?>
+	{  ?>
 	 <a href="logout.php">logout</a> <br>
 	 <a href="add.php">Add New Entry</a>
 	 <?php

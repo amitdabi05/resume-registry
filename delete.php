@@ -60,7 +60,7 @@ session_start();
 		<?php echo $row['last_name']?><br>
 		<form action="delete.php" method="post">
 		<input type="text" value="<?php echo $_GET['profile_id']?>" name="profile_id"  hidden>
-		<input type="submit" onclick="index.php"  name="delete" value="delete">
+		<input type="submit" onclick="index.php"  name="delete" value="Delete">
 		
 		</form>
 		<button onclick="location.href='index.php';">cancel</button>
