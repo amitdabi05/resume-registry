@@ -1,3 +1,7 @@
+<?php
+session_start();
+require_once("util.php");
+?>
 <html>
 <head>
 <title>Amit Dabi</title>
@@ -14,7 +18,7 @@
 </head>
 <body>
 <?php
-session_start();
+
     $servername = "localhost";
     $username = "root";
     $password = "root";
@@ -43,6 +47,19 @@ session_start();
 	   <?php echo $row['headline']?><br>
     <label>Summary:</label>
 	   <?php echo $row['summary']?><br>
+	   <?php
+	    $conn = $pdo->prepare('select * from position where profile_id= :p');
+	    $conn ->execute(array(':p'=>$_GET['profile_id']));
+		if($conn->rowCount()==true)
+		{
+			echo"<label>Positions:</label><br><ul>";
+			while($ro= $conn->fetch(PDO::FETCH_ASSOC))
+			{
+				echo"<li>".$ro['year'].":".$ro['description']."</li>";
+			}
+			echo"</ul>";
+		}
+	   ?>
 	   <a href ="index.php">done</a>
 </body>
 </html>

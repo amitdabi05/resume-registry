@@ -1,3 +1,7 @@
+<?php
+session_start();
+require_once("util.php");
+?>
 <html>
 <head>
 <title>Amit Dabi</title>
@@ -14,7 +18,7 @@
 </head>
 <body>
  <?php
- session_start();
+
     $servername = "localhost";
     $username = "root";
     $password = "root";

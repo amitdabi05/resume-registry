@@ -1,3 +1,7 @@
+<?php
+session_start();
+require_once("util.php");
+?>
 <html>
 <head>
 <title>Amit Dabi</title>
@@ -11,11 +15,15 @@
     href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
     integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
     crossorigin="anonymous">
+	<script
+    src="https://code.jquery.com/jquery-3.2.1.js"
+    integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+    crossorigin="anonymous"></script>
   </head>
 <body>
 <div class="container">
 <?php
-session_start();
+
     $servername = "localhost";
     $username = "root";
     $password = "root";
@@ -39,8 +47,15 @@ session_start();
 					return;
 				}					
 			  
-				  
+				$msg=util(); 
+                if(is_string($msg))
+				{
+					$_SESSION['error']=$msg;
+					header("Location:add.php");
+					return;
+				}					
              $stmt = $pdo->prepare('insert into profile(user_id,first_name,last_name,email,headline,summary) values(:u,:f,:l,:e,:h,:s)');
+			 
 
              $stmt->execute(array(':u'=>$_SESSION['user_id'], 
 			 ':f'=>$_POST['first_name'], 
@@ -49,6 +64,24 @@ session_start();
 			 ':h'=>$_POST['headline'],
 			 ':s'=>$_POST['summary'],			
 			 ));
+			 
+			 $profile_id = $pdo->lastInsertId();
+			 $rank=1;
+			 for($i=1;  $i<=9; $i++)
+			 {
+				 if(isset($_POST['year'.$i])) 
+				 {
+				$stmt = $pdo->prepare('INSERT INTO Position (profile_id, rank, year, description) VALUES ( :pid, :rank, :year, :desc)'); 
+				 $stmt->execute(array(
+                 ':pid' => $profile_id,
+                 ':rank' => $rank,
+                 ':year' =>$_POST['year'.$i],
+                 ':desc' => $_POST['desc'.$i])
+             );
+            $rank++;
+	         } 
+			 }		
+           
 			 $_SESSION['success']="Profile added";
 			 header("Location:index.php"); 
 			 return;
@@ -78,9 +111,34 @@ session_start();
 <input type="text" name="headline" size="60" id="hl1"><br>
 <label>Summary:</label><br>
 <textarea rows="10" cols="100" name="summary" id="sum1"></textarea><br><br>
+<label>Position</label>
+<input type="submit" name="positon" id="po1" value="+">
+<div id="dv1">
+
+</div>
 <input type="submit" name="Add" value="Add">
 <input type="submit" name="Cancel" value="cancel">
 </form>
+<script>
+  count=0;
+     $(document).ready(function(){
+     window.console&&console.log("document ready call");
+	 $('#po1').click(function(event){
+	  	event.preventDefault();
+		if(count>=9)
+		{
+			alert("maximum position");
+			return;
+		}	
+		count++;
+		window.console&&console.log("adding position= "+count);		
+		$('#dv1').append('<div id="dva'+count+'"> \
+		<p>Year:<input type="text" name="year'+count+'"> \
+		<input type="button" value="-" onclick="$(\'#dva'+count+'\').remove();return false;"><br> \
+		<textarea name="desc'+count+'" rows="10" cols="100" ></textarea></p></div>');	
+	});
+});
+</script>
 </div>
 </body>
 </html>
