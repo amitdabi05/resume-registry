@@ -17,6 +17,7 @@ require_once("util.php");
     crossorigin="anonymous">
 </head>
 <body>
+<div class="container">
 <?php
 
     $servername = "localhost";
@@ -61,5 +62,6 @@ require_once("util.php");
 		}
 	   ?>
 	   <a href ="index.php">done</a>
-</body>
+        </div>
+	   </body>
 </html>

@@ -13,6 +13,7 @@
     crossorigin="anonymous">
 </head>
 <body>
+<div class="container">
 <h1>Resume Registry</h1>
  <?php
    session_start();
@@ -74,5 +75,6 @@
       echo "Exception caught: ".$e->getMessage();
     }
 ?>
+     </div>
 	</body>
 </html>

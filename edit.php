@@ -22,6 +22,7 @@ require_once("util.php");
 	</script>
 </head>
 <body>
+<div class="container">
  <?php
   if(!isset($_SESSION['name']))
   {
@@ -186,5 +187,6 @@ echo"</form>";
 $conn= null;
 $pdo= null;
 ?>
+</div>
 </body>
 </html>

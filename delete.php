@@ -13,6 +13,7 @@
     crossorigin="anonymous">
 </head>
 <body>
+<div class="container">
 <?php
 session_start();
     $servername = "localhost";
@@ -64,5 +65,6 @@ session_start();
 		
 		</form>
 		<button onclick="location.href='index.php';">cancel</button>
+	</div>
 	</body>
 	</html>
