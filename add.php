@@ -5,21 +5,15 @@ require_once("util.php");
 <html>
 <head>
 <title>Amit Dabi</title>
-<link rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-    integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
-    crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
-    <!-- Optional theme -->
-    <link rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
-    integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
-    crossorigin="anonymous">
-	<script
-    src="https://code.jquery.com/jquery-3.2.1.js"
-    integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
-    crossorigin="anonymous">
-	</script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css"> 
+
+  <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
   </head>
 <body>
 <div class="container">
@@ -47,11 +41,18 @@ require_once("util.php");
 					header("Location:add.php");
 					return;
 				}					
-			  
+			     
 				$msg=util(); 
                 if(is_string($msg))
 				{
 					$_SESSION['error']=$msg;
+					header("Location:add.php");
+					return;
+				}			
+                $msg1=validate(); 
+                if(is_string($msg1))
+				{
+					$_SESSION['error']=$msg1;
 					header("Location:add.php");
 					return;
 				}					
@@ -81,8 +82,38 @@ require_once("util.php");
              );
             $rank++;
 	         } 
-			 }		
-           
+			 }
+			 for($i=1;  $i<=9; $i++)
+			 {
+				 if(isset($_POST['edu_year'.$i])) 
+				 {
+			     $id=false;
+				 $stmt = $pdo->prepare('select * from institution where name= :n'); 
+				 $stmt->execute(array(
+                 ':n' => $_POST['edu_school'.$i]));
+				 $row=$stmt->fetch(PDO::FETCH_ASSOC);
+				 if($row!==false)
+				 {
+					 $id=$row['institution_id'];
+				 }
+				 else
+				 {
+					  $stmt = $pdo->prepare('INSERT INTO institution(name) VALUES(:n)'); 
+				      $stmt->execute(array(
+                     ':n' => $_POST['edu_school'.$i]));
+				     $id=$pdo->lastInsertId();
+				 }
+             
+				 $stmt = $pdo->prepare('INSERT INTO education (profile_id, institution_id,rank, year) VALUES ( :pid, :inst ,:rank, :year)'); 
+				 $stmt->execute(array(
+                 ':pid' => $profile_id,
+				 ':inst'=>$id,
+                 ':rank' => $rank,
+                 ':year' =>$_POST['edu_year'.$i])
+             );
+            $rank++;
+	         } 
+			 } 		           
 			 $_SESSION['success']="Profile added";
 			 header("Location:index.php"); 
 			 return;
@@ -112,6 +143,11 @@ require_once("util.php");
 <input type="text" name="headline" size="60" id="hl1"><br>
 <label>Summary:</label><br>
 <textarea rows="10" cols="100" name="summary" id="sum1"></textarea><br><br>
+<label>Education</label>
+<input type="submit" name="education" id="ed1" value="+">
+<div id="dv2">
+
+</div>
 <label>Position</label>
 <input type="submit" name="positon" id="po1" value="+">
 <div id="dv1">
@@ -138,6 +174,26 @@ require_once("util.php");
 		<input type="button" value="-" onclick="$(\'#dva'+count+'\').remove();return false;"><br> \
 		<textarea name="desc'+count+'" rows="10" cols="100" ></textarea></p></div>');	
 	});
+});
+cont=0;
+     $(document).ready(function(){
+     window.console&&console.log("document ready call");
+	 $('#ed1').click(function(event){
+	  	event.preventDefault();
+		if(cont>=9)
+		{
+			alert("maximum Education");
+			return;
+		}	
+		cont++;
+		window.console&&console.log("adding education= "+cont);		
+		$('#dv2').append('<div id="education'+cont+'"> \
+		<p>Year:<input type="text" name="edu_year'+cont+'"> \
+		<input type="button" value="-" onclick="$(\'#education'+cont+'\').remove();return false;"><br> \
+		School:<input type="text" name="edu_school'+cont+'" class="school" size="80" ></p></div>');
+        $('.school').autocomplete({ source: "school.php" });		
+	});
+	    $('.school').autocomplete({ source: "school.php" });
 });
 </script>
 </div>

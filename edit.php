@@ -5,21 +5,15 @@ require_once("util.php");
 <html>
 <head>
 <title>Amit Dabi</title>
-<link rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-    integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
-    crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
-    <!-- Optional theme -->
-    <link rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
-    integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r"
-    crossorigin="anonymous">
-	<script
-    src="https://code.jquery.com/jquery-3.2.1.js"
-    integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
-    crossorigin="anonymous">
-	</script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css"> 
+
+  <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="container">
@@ -66,7 +60,13 @@ require_once("util.php");
 					header("Location:edit.php?profile_id=".$_POST['profile_id']);
 					return;
 				}									
-			  				  
+			  	 $msg1=validate(); 
+                if(is_string($msg1))
+				{
+					$_SESSION['error']=$msg1;
+					header("Location:edit.php");
+					return;
+				}					  
              $stmt = $pdo->prepare('update profile set first_name=:f,last_name=:l,email=:e,headline=:h,summary=:s where profile_id=:p');
              
              $stmt->execute(array( 
@@ -78,6 +78,8 @@ require_once("util.php");
              ':p'=>$_POST['profile_id'],			 
 			 ));
 			
+			  $sm = $conn->prepare('delete from education where profile_id= :p');
+              $sm->execute(array(':p'=>$_GET['profile_id']));
 			  $sm = $conn->prepare('delete from position where profile_id= :p');
               $sm->execute(array(':p'=>$_GET['profile_id']));
 			  			 
@@ -96,6 +98,37 @@ require_once("util.php");
             $rank++;
 	         } 
 			 }	
+			  for($i=1;  $i<=9; $i++)
+			 {
+				 if(isset($_POST['edu_year'.$i])) 
+				 {
+			     $id=false;
+				 $stmt = $pdo->prepare('select * from institution where name= :n'); 
+				 $stmt->execute(array(
+                 ':n' => $_POST['edu_school'.$i]));
+				 $row=$stmt->fetch(PDO::FETCH_ASSOC);
+				 if($row!==false)
+				 {
+					 $id=$row['institution_id'];
+				 }
+				 else
+				 {
+					  $stmt = $pdo->prepare('INSERT INTO institution(name) VALUES(:n)'); 
+				      $stmt->execute(array(
+                     ':n' => $_POST['edu_school'.$i]));
+				     $id=$pdo->lastInsertId();
+				 }
+             
+				 $stmt = $pdo->prepare('INSERT INTO education (profile_id, institution_id,rank, year) VALUES ( :pid, :inst ,:rank, :year)'); 
+				 $stmt->execute(array(
+                 ':pid' => $_GET['profile_id'],
+				 ':inst'=>$id,
+                 ':rank' => $rank,
+                 ':year' =>$_POST['edu_year'.$i])
+             );
+            $rank++;
+	         } 
+			 } 		           
 			  
 			 $_SESSION['success']="Profile updated";
 			 header("Location:index.php"); 
@@ -114,8 +147,6 @@ require_once("util.php");
 	unset($_SESSION['error']);
    }
    
-             
-
              $stm = $conn->prepare('select * from profile where profile_id= :p');
 
              $stm->execute(array(':p'=>$_GET['profile_id'])); 
@@ -135,6 +166,27 @@ require_once("util.php");
 <input type="text" name="headline" size="60" id="hl1" value="<?php echo $row['headline']?>"><br>
 <label>Summary:</label><br>
 <textarea rows="10" cols="100" name="summary" id="sum1"><?php echo $row['summary']?></textarea><br><br>
+<label>Education</label>
+<input type="submit" name="education" id="ed1" value="+">
+<div id="dv2">
+<?php
+         $st = $conn->prepare('select * from education inner join institution on education.institution_id=institution.institution_id where profile_id= :p');
+         $st->execute(array(':p'=>$_GET['profile_id'])); 
+		 
+		 $num_amit_dabi=0;
+    if($st->rowCount() == true)
+	{
+    while($ro= $st->fetch(PDO::FETCH_ASSOC))
+	   {
+		 $num_amit_dabi++;
+		echo"<div id='education".$num_amit_dabi."'> 
+		<p>Year:<input type='text' value='".$ro['year']."' name='edu_year".$num_amit_dabi."'> 
+		<input type='button' value='-' onclick='$(\"#education".$num_amit_dabi."\").remove();return false;'><br> 
+		school:<input type='text' size='80' class='school' value='".$ro['name']."' name='edu_school".$num_amit_dabi."'></p></div>";
+	   }
+	}	
+?>
+</div>  
 <label>Position</label>
 <input type="submit" name="positon" id="po1" value="+">
 <div id="dv1">
@@ -163,6 +215,27 @@ require_once("util.php");
 echo"</form>";
 ?>
 <script>
+
+         cont=<?=$num_amit_dabi?>;
+     $(document).ready(function(){
+     window.console&&console.log("document ready call");
+	 $('#ed1').click(function(event){
+	  	event.preventDefault();
+		if(cont>=9)
+		{
+			alert("maximum Education");
+			return;
+		}	
+		cont++;
+		window.console&&console.log("adding education= "+cont);		
+		$('#dv2').append('<div id="education'+cont+'"> \
+		<p>Year:<input type="text" name="edu_year'+cont+'"> \
+		<input type="button" value="-" onclick="$(\'#education'+cont+'\').remove();return false;"><br> \
+		School:<input type="text" name="edu_school'+cont+'" class="school" size="80" ></p></div>');
+        $('.school').autocomplete({ source: "school.php" });		
+	});
+	    $('.school').autocomplete({ source: "school.php" });
+});
 			count=<?=$num?>;
      $(document).ready(function(){
      window.console&&console.log("document ready call");
